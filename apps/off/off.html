@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>OFF</title>
+<!--  <link rel="stylesheet"    type="text/css"   href="ndb.css" >-->
+  <link rel="shortcut icon" type="image/jpg"  href="favicon.png"/>
+  <script src="./off.js"></script>
+</head>
+<body>
+<!--  <h1 id="title">Open Food Facts</h1>-->
+  <br>
+  <a href="https://fr.openfoodfacts.org/" target="_blank">Open Food Facts</a>
+  <br>
+  <div>
+    <label for="foodIndex" >EAN:</label>
+    <input id="foodIndex" name="foodIndex" type="text" value="3017620425035">
+    <button type="button" onclick="{ foodUpdate(); }">Cliquez ici !</button>
+  </div>
+  <h2   id="food-name"></h2>
+  <div  id="food-detail"></div>
+
+  <script>
+    offGet();
+  </script>
+
+</body>
+</html>
