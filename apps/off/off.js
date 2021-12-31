@@ -27,6 +27,7 @@ const offGet = async (food_ean) => {
                 return null;
             } else {
                 console.log(`Food ${food_ean} found`);
+                console.log(json);
                 return json;
             }
         })
@@ -48,7 +49,7 @@ const offNorm = async (foodRaw) => {
 
         const unitNameMap = {
             'kJ':   {'Unit': 'J',   'Multiplier':  1000.0,      },
-            //'kcal': {'Unit': 'J',   'Multiplier':  4.184,       },
+            'kcal': {'Unit': 'J',   'Multiplier':  1000.0,      },  // API inconsistency: energy_100g unit is in kcal
             'kg':   {'Unit': 'IU',  'Multiplier':  1.0,         },
             'g':    {'Unit': 'kg',  'Multiplier':  0.001,       },
             'mg':   {'Unit': 'kg',  'Multiplier':  0.000001,    },
@@ -58,6 +59,7 @@ const offNorm = async (foodRaw) => {
         }
         const nutUnitOrder = ['kJ', 'kg', 'g', 'mg', 'µg', 'l', 'ml',];
         const nut_dl = nut_kl
+            .filter(nut_k => nut_k != 'energy-kcal')
             .map(nut_k => ({
                 'Key':      nut_k,
                 'Label':    nut_dl_old[`${nut_k}_label`]    ? nut_dl_old[`${nut_k}_label`]      : null,
@@ -66,7 +68,7 @@ const offNorm = async (foodRaw) => {
                 '100g':     nut_dl_old[`${nut_k}_100g`]     ? nut_dl_old[`${nut_k}_100g`]       : null,
                 'Unit':     nut_dl_old[`${nut_k}_unit`]     ? nut_dl_old[`${nut_k}_unit`]       : null,
             }))
-            .filter(nut_d =>   nut_d['Unit'] !== 'kcal')
+            //.filter(nut_d =>   nut_d['Unit'] !== 'kcal')  // API inconsistency: energy_100g unit is in kcal
             .filter(nut_d => !!nut_d['Unit'])
             .filter(nut_d => !!nut_d['Value'])
             .map(nut_d => ({
@@ -77,10 +79,19 @@ const offNorm = async (foodRaw) => {
             .sort((a, b) => - (a.Value - b.Value))
             .sort((a, b) => nutUnitOrder.indexOf(a.Unit) - nutUnitOrder.indexOf(b.Unit) )
         ;
+        const foodNut = (nut_dl, nut_k) => {
+            const nut_d = nut_dl.filter( nut_d => nut_d.Key === nut_k);
+            if (nut_d.length > 0){
+                return nut_d[0]['Value'];
+            } else {
+                return null;
+            }
+        }
         const food = {
+            'EAN':              foodRaw['product']['code'],
             'Name':             foodRaw['product']['product_name'],
             'Quantity':         foodRaw['product']['quantity'],
-            'URL':              foodRaw['product']['url'],
+            'URL':              `https://fr.openfoodfacts.org/produit/${foodRaw['product']['code']}`,
             'Labels':           foodRaw['product']['labels'],
             'Brands':           foodRaw['product']['brands'],
             'Brands.Tags':      foodRaw['product']['brands_tags'],
@@ -88,8 +99,8 @@ const offNorm = async (foodRaw) => {
             'Categories.Tags':  foodRaw['product']['categories_tags'],
             'Categories.Main':  foodRaw['product']['main_category'],
             'Categories.Hier':  foodRaw['product']['main_category'],
-            'Energy (J/kg)':    nut_dl.filter( nut_d => nut_d.Key === 'energy')[0]['Value'],
-            'Energy (kJ/100g)': nut_dl.filter( nut_d => nut_d.Key === 'energy')[0]['Value'] / 10000,
+            'Energy (J/kg)':    foodNut(nut_dl, 'energy'),
+            'Energy (kJ/100g)': foodNut(nut_dl, 'energy') / 10000 || null,
             'Nutriments':       nut_dl,
 
         }
@@ -106,6 +117,8 @@ const foodToHtml = async (food) => {
     let html = "";
 
     html += '<ul>';
+    html += `<li><a href="${food['URL']}" target="_blank">${food['URL']}</a></li>`;
+    html += `<li>EAN:              ${food['EAN']}</li>`;
     html += `<li>Name:             ${food['Name']}</li>`;
     html += `<li>Quantity:         ${food['Quantity']}</li>`;
     html += `<li>URL:              ${food['URL']}</li>`;
