@@ -7,6 +7,7 @@ API Specification
 https://wiki.openfoodfacts.org/API/Read/Product#Name
 */
 
+
 const offGet = async (food_ean) => {
 
     const url = `https://world.openfoodfacts.org/api/v0/product/${food_ean}.json`;
