@@ -26,8 +26,7 @@ const ndbGet = async (foodIndex) => {
                 return json.foods[0];
             }
         })
-        .catch(e => {console.log('ERROR: ' + e.message);
-        });
+        .catch(e => {console.log('ERROR: ' + e.message);});
 
     return food;
 }
